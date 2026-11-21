@@ -492,9 +492,25 @@
   }
 
   /* ---------- time ---------- */
+  // Position of the sound actually coming out of the speakers, from the audio clock.
+  function audioMs() {
+    var mb = sc.midiBuffer;
+    if (!mb || !mb.isRunning || mb.startTimeSec == null) return null;
+    var ctx = ABCJS.synth.activeAudioContext();
+    if (!ctx) return null;
+    var pos = null;
+    if (ctx.getOutputTimestamp) {
+      var ts = ctx.getOutputTimestamp();
+      if (ts && ts.contextTime > 0 && ts.performanceTime > 0) pos = ts.contextTime + (performance.now() - ts.performanceTime) / 1000;
+    }
+    if (pos == null) pos = ctx.currentTime - latencyMs / 1000;
+    return (pos - mb.startTimeSec) * 1000;
+  }
+
   function nowMs() {
     var t = sc.timer;
     if (!t) return 0;
+    if (t.isRunning) { var a = audioMs(); if (a != null) return a; }
     if (t.isRunning && t.startTime != null) return performance.now() - t.startTime - latencyMs;
     var pct = t.pausedPercent != null ? t.pausedPercent : (sc.percent || 0);
     return pct * t.lastMoment;
