@@ -1,0 +1,7 @@
+# Sheet-music photos and local tool settings stay out of the repo
+*.jpg
+*.jpeg
+*.png
+*.pdf
+.claude/
+.DS_Store
