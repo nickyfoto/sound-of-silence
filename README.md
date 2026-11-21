@@ -6,6 +6,7 @@ A single-page, play-along melody for *The Sound of Silence* (words and music by 
 
 - A bouncing ball lands on each note at the moment it should sound, and the current note is highlighted.
 - Tempo slider, count-in, metronome, chord backing, loop, and a choice of melody instrument.
+- The original Simon & Garfunkel recording runs at about 107 bpm; the page starts a little slower, at 96, for practice.
 - Click any note to jump there. Keyboard: `Space` play/pause, `←` `→` previous/next bar, `R` restart.
 - Bar numbers and line breaks follow the printed lead sheet. Lyrics are not included.
 
