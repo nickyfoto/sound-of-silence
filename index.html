@@ -294,11 +294,11 @@
     /*17 */ { m: '"Em"G E3- E4', bar: '|:' },
     /*18 */ { m: '"Em"z E EE GGBB', bar: '|' },
     /*19 */ { m: '"D"A8', bar: '|' },
-    /*20 */ { m: 'z D DD FFAA', bar: '|' },
+    /*20 */ { m: 'z "^2nd time only"D DD FFAA', bar: '|' },
     /*21 */ { m: '"Em"G8', bar: '|' },
     /*22 */ { m: 'z2 GG "G"BBdd', bar: '|' },
-    /*23 */ { m: '"C"e3 "G"d- d4', bar: '|' },
-    /*24 */ { m: 'z G GG BBdd', bar: '|' },
+    /*23 */ { m: '"C"e3 d- "G"d4', bar: '|' },
+    /*24 */ { m: 'z "^1st time only"G GG BBdd', bar: '|' },
     /*25 */ { m: '"C"e2 ed- "G"d4', bar: '|' },
     /*26 */ { m: 'z2 GG', bar: '|', meter: '2/4' },
     /*27 */ { m: '"C"e2 ee- e2 ef', bar: '|', meter: '4/4' },
@@ -312,10 +312,10 @@
     /*35 */ { m: '"D"A8', bar: '|' },
     /*36 */ { m: 'z2 DD FFAA', bar: '|' },
     /*37 */ { m: '"Em"G8', bar: '|' },
-    /*38 */ { m: 'z2 GG "G"BBdd', bar: '|' },
-    /*39 */ { m: '"C"e3 "G"d- d4', bar: '|' },
+    /*38 */ { m: 'z2 GG BB"G"dd', bar: '|' },
+    /*39 */ { m: '"C"e3 d- "G"d4', bar: '|' },
     /*40 */ { m: 'z2 GG BBdd', bar: '|' },
-    /*41 */ { m: '"C"e3 "G"d- d4', bar: '|' },
+    /*41 */ { m: '"C"e3 d- "G"d4', bar: '|' },
     /*42 */ { m: 'z2 GG', bar: '|', meter: '2/4' },
     /*43 */ { m: '"C"e6 f2', bar: '|', meter: '4/4' },
     /*44 */ { m: 'g g3 f e3', bar: '|' },
@@ -328,10 +328,10 @@
     /*51 */ { m: '"D"A8', bar: '|' },
     /*52 */ { m: 'z2 DD FFAA', bar: '|' },
     /*53 */ { m: '"Em"G8', bar: '|' },
-    /*54 */ { m: 'z2 GG "G"BBdd', bar: '|' },
-    /*55 */ { m: '"C"e3 "G"d- d4', bar: '|' },
+    /*54 */ { m: 'z2 GG BB"G"dd', bar: '|' },
+    /*55 */ { m: '"C"e3 d- "G"d4', bar: '|' },
     /*56 */ { m: 'z2 GG BBdd', bar: '|' },
-    /*57 */ { m: '"C"e3 "G"d- d4', bar: '|' },
+    /*57 */ { m: '"C"e3 d- "G"d4', bar: '|' },
     /*58 */ { m: 'z2 GG B2 dd', bar: '|' },
     /*59 */ { m: '"C"e2 ee ee f2', bar: '|' },
     /*60 */ { m: 'gggg f e3', bar: '|' },
@@ -407,7 +407,7 @@
   /* ---------- ABC + rendering ---------- */
   function buildAbc() {
     var lines = layoutMode === 'compact' ? compactLines() : SHEET_LINES;
-    var abc = 'X:1\n%%printtempo false\n%%barnumbers 0\nM:4/4\nL:1/8\nQ:1/4=' + S.bpm + '\nK:Em\n';
+    var abc = 'X:1\n%%printtempo false\n%%barnumbers 0\n%%annotationfont Helvetica 10 italic\nM:4/4\nL:1/8\nQ:1/4=' + S.bpm + '\nK:Em\n';
     lines.forEach(function (r) {
       var parts = [];
       for (var n = r[0]; n <= r[1]; n++) {
@@ -437,6 +437,7 @@
       clickListener: onScoreClick
     })[0];
     svg = scoreEl.querySelector('svg');
+    passOnly = findPassOnlyNotes();
     buildOverlay();
     buildTimeline(visualObj.setTiming(S.bpm, S.countIn ? 1 : 0));
     curIdx = -2; curLine = -1; lastHighlighted = [];
@@ -470,10 +471,52 @@
     return null;
   }
 
+  /* Inside the repeat (bars 18–33) a couple of notes belong to only one verse:
+     bar 20's pickup D is sung only the 2nd time, bar 24's first G only the 1st time.
+     They carry a "^1st/2nd time only" label; map each one's position in the ABC
+     text to the pass on which it should sound. */
+  var PASS_LABELS = { '1st time only': 1, '2nd time only': 2 };
+  var passOnly = {};
+  function findPassOnlyNotes() {
+    var map = {};
+    (visualObj.lines || []).forEach(function (line) {
+      (line.staff || []).forEach(function (st) {
+        (st.voices || []).forEach(function (v) {
+          v.forEach(function (el) {
+            if (el.el_type !== 'note' || !el.chord) return;
+            el.chord.forEach(function (c) { if (PASS_LABELS[c.name]) map[el.startChar] = PASS_LABELS[c.name]; });
+          });
+        });
+      });
+    });
+    return map;
+  }
+  // Audio: drop those notes on the pass where they don't belong.
+  function muteOtherPasses(tracks) {
+    tracks.forEach(function (track, ti) {
+      var groups = {};
+      track.forEach(function (n, i) {
+        if (n.startChar != null && passOnly[n.startChar]) (groups[n.startChar] = groups[n.startChar] || []).push(i);
+      });
+      var drop = {}, any = false;
+      Object.keys(groups).forEach(function (c) {
+        groups[c].sort(function (a, b) { return track[a].start - track[b].start; })
+          .forEach(function (ix, k) { if (k + 1 !== passOnly[c]) { drop[ix] = true; any = true; } });
+      });
+      if (any) tracks[ti] = track.filter(function (n, i) { return !drop[i]; });
+    });
+  }
+
   function buildTimeline(noteTimings) {
     events = [];
+    var seen = {};
     noteTimings.forEach(function (e) {
       if (e.type !== 'event' || e.left === null || !e.elements || !e.elements.length) return;
+      var keepPass = passOnly[e.startChar];
+      if (keepPass) {
+        seen[e.startChar] = (seen[e.startChar] || 0) + 1;
+        if (seen[e.startChar] !== keepPass) return;   // silent this time: the previous rest stays current
+      }
       var flat = [];
       e.elements.forEach(function (es) { (es || []).forEach(function (el) { if (el) flat.push(el); }); });
       var abcelem = visualObj.getElementFromChar ? visualObj.getElementFromChar(e.startChar) : null;
@@ -773,7 +816,8 @@
       program: S.program,
       chordsOff: !S.chords,
       chordprog: 24, chordvol: 52,
-      bassprog: 32, bassvol: 58
+      bassprog: 32, bassvol: 58,
+      sequenceCallback: muteOtherPasses
     };
     if (S.metronome || S.countIn) {
       p.drum = DRUM['4/4'];
