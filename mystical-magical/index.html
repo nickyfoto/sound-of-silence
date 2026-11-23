@@ -263,10 +263,10 @@
     </p>
     <p class="hint">
       Playback follows the road map: after bar 42 it goes back to the sign at bar 11 (D.S.), and on that second
-      time through it jumps from bar 34 to the Coda at bar 43. Bars 17–18 differ between the two times, like the
-      two lines of words on the sheet: the first time plays bar 17's single D on the "and" of beat 3, the top note
-      of its last chord and the upper part of bar 18; the second time plays the bottom note of that chord and the
-      lower part of bar 18.
+      time through it jumps from bar 34 to the Coda at bar 43. Bars 15, 17 and 18 differ between the two times, like
+      the two lines of words on the sheet: the first time plays bar 15's E on beat 4, bar 17's single D on the "and"
+      of beat 3, the top note of bar 17's last chord and the upper part of bar 18; the second time leaves out those
+      two single notes and plays the bottom note of that chord and the lower part of bar 18.
     </p>
     <p class="hint">
       Benson Boone's recording runs at about 120 bpm, in B major, a half step below this sheet; this page starts
@@ -302,9 +302,9 @@
     /*10 */ { m: `z2 z/g/g agag`, bar: '||' },
     /*11 */ { m: `!segno!"Dm7"ag g4 eg`, bar: '|' },
     /*12 */ { m: `ac'ag aged`, bar: '|' },
-    /*13 */ { m: `"C"eg g4 cd`, bar: '|' },
+    /*13 */ { m: `"C"eg e4 cd`, bar: '|' },
     /*14 */ { m: `eeeA z g ag`, bar: '|' },
-    /*15 */ { m: `"Dm7"ag g4 eg`, bar: '|' },
+    /*15 */ { m: `"Dm7"ag g4 «1e»g`, bar: '|' },
     /*16 */ { m: `ac'aa- aded`, bar: '|' },
     /*17 */ { m: `"C"eg e2 z «1d» e[«2d»«1g»]`, bar: '|' },
     /*18 */ { m: `«1"^1st time"(e/d/c3) z4» & «2"_2nd time"c2 d2 e2 g2»`, bar: '||' },
@@ -322,8 +322,8 @@
     /*30 */ { m: `c' g2 g- ga c'2`, bar: '|' },
     /*31 */ { m: `"Dm7"e'e' d'2 z e' e'd'-`, bar: '|' },
     /*32 */ { m: `"G"d' g2 g- ga g2`, bar: '|' },
-    /*33 */ { m: `"C"d'd' c'2 z d' d'c'-`, bar: '|' },
-    /*34 */ { m: `"Am"c' a3 "^To Coda"!coda!z4`, bar: '||' },
+    /*33 */ { m: `"C"d'd' c'2 z d' d'(c'-`, bar: '|' },
+    /*34 */ { m: `"Am"c' a3) "^To Coda"!coda!z4`, bar: '||' },
     /*35 */ { m: `"Dm7"z e dc/d/- d/c/d ed`, bar: '|' },
     /*36 */ { m: `z e dc/d/- d/c/c e2`, bar: '|' },
     /*37 */ { m: `"C"z c dc/d/- d/c/c ec`, bar: '|' },
@@ -342,8 +342,8 @@
     /*50 */ { m: `"Am"z8`, bar: '||' },
     /*51 */ { m: `"Dm7"e'e' d'2 z e' e'd'-`, bar: '|' },
     /*52 */ { m: `"G"d' g2 g- ga g2`, bar: '|' },
-    /*53 */ { m: `"C"d'd' c'2 z d' d'c'-`, bar: '|' },
-    /*54 */ { m: `(c'4 g4)`, bar: '|]' }
+    /*53 */ { m: `"C"d'd' c'2 z d' d'(c'-`, bar: '|' },
+    /*54 */ { m: `c'4 g4)`, bar: '|]' }
   ];
   var NBARS = BARS.length;
 
@@ -595,7 +595,7 @@
     });
   }
 
-  // Audio: drop the notes that don't belong to the current pass (bars 17–18).
+  // Audio: drop the notes that don't belong to the current pass (bars 15, 17 and 18).
   function muteOtherPasses(tracks) {
     tracks.forEach(function (track, ti) {
       var any = false;

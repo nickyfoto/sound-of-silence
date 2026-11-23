@@ -11,7 +11,7 @@ What each page does:
 - Tempo slider, count-in, metronome, chord backing, loop, and a choice of melody instrument.
 - Click any note to jump there. Keyboard: `Space` play/pause, `←` `→` previous/next bar, `R` restart.
 - Bar numbers and line breaks follow the printed lead sheet. Lyrics are not included.
-- Repeats and road maps are played as written: *The Sound of Silence* repeats bars 18–33; *Mystical Magical* follows its D.S. al Coda, and bars 17–18 play different notes the second time.
+- Repeats and road maps are played as written: *The Sound of Silence* repeats bars 18–33; *Mystical Magical* follows its D.S. al Coda, and bars 15, 17 and 18 play different notes the second time.
 
 Tempo:
 - The original Simon & Garfunkel recording runs at about 107 bpm; that page starts a little slower, at 96, for practice.
