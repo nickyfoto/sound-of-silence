@@ -5,3 +5,5 @@
 *.pdf
 .claude/
 .DS_Store
+*.heic
+*.HEIC
