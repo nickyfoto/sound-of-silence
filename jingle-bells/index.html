@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jingle Bells</title>
+<meta name="description" content="Play-along melody and guitar tab with a pointer that follows the rhythm.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f1eee8;
+    --surface: #ffffff;
+    --surface-2: #f7f5f1;
+    --ink: #1d1c1a;
+    --muted: #6d6a64;
+    --line: #dcd7ce;
+    --accent: #d9481c;
+    --accent-soft: rgba(217, 72, 28, 0.12);
+    --paper: #fffdf9;
+    --paper-ink: #1b1a18;
+    --shadow: 0 1px 2px rgba(40, 30, 20, .06), 0 6px 24px rgba(40, 30, 20, .07);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141414;
+      --surface: #1e1e1d;
+      --surface-2: #262624;
+      --ink: #eceae5;
+      --muted: #a29e96;
+      --line: #34332f;
+      --accent: #ff6a3d;
+      --accent-soft: rgba(255, 106, 61, 0.16);
+      --paper: #fbf9f4;
+      --paper-ink: #1b1a18;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141414;
+    --surface: #1e1e1d;
+    --surface-2: #262624;
+    --ink: #eceae5;
+    --muted: #a29e96;
+    --line: #34332f;
+    --accent: #ff6a3d;
+    --accent-soft: rgba(255, 106, 61, 0.16);
+    --paper: #fbf9f4;
+    --paper-ink: #1b1a18;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 28px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+  header.top { padding: 28px 0 14px; }
+  h1 {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    font-size: clamp(28px, 4.4vw, 42px);
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    margin: 0 0 6px;
+  }
+  .sub { color: var(--muted); margin: 0; font-size: 14px; }
+
+  /* ---------- transport ---------- */
+  .transport {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.2) blur(10px);
+    -webkit-backdrop-filter: saturate(1.2) blur(10px);
+    padding: 10px 0 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .bar-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    appearance: none; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); border-radius: 999px; height: 40px; min-width: 40px; padding: 0 12px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font: inherit; cursor: pointer; transition: background .15s, border-color .15s, transform .05s;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible, .chip:focus-within, select:focus-visible, input:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .btn svg { width: 18px; height: 18px; fill: currentColor; }
+  .btn.play {
+    width: 52px; height: 52px; border: none; background: var(--accent); color: #fff;
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .btn.play:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+  .btn.play svg { width: 22px; height: 22px; }
+
+  .counter {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 6px 12px; min-width: 240px;
+  }
+  .counter .where { display: flex; flex-direction: column; line-height: 1.15; min-width: 112px; }
+  .counter .where b { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .counter .where span { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .beats { display: flex; gap: 8px; align-items: center; }
+  .beats i {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--line);
+    transition: background .06s, transform .06s;
+  }
+  .beats i.down { width: 18px; height: 18px; }
+  .beats i.half { width: 16px; height: 16px; }
+  .beats i.on { background: var(--accent); transform: scale(1.12); }
+  .beats i.count.on { background: var(--ink); }
+
+  .tempo { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+  .tempo input { width: 130px; accent-color: var(--accent); }
+  .tempo output { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; min-width: 2.2em; text-align: right; }
+
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .chip {
+    position: relative; display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--muted); font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .chip::before {
+    content: ""; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--line); transition: background .15s;
+  }
+  .chip:has(input:checked) { color: var(--ink); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .chip:has(input:checked)::before { background: var(--accent); }
+  select {
+    height: 32px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink); padding: 0 10px; font: inherit; font-size: 13px;
+  }
+
+  .progress {
+    margin-top: 10px; height: 6px; border-radius: 999px; background: var(--line);
+    position: relative; cursor: pointer; touch-action: none;
+  }
+  .progress::after { content: ""; position: absolute; inset: -8px 0; } /* bigger hit area */
+  .progress .fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: var(--accent); }
+  .status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .status:empty { display: none; }
+
+  /* ---------- score ---------- */
+  main { padding: 18px 0 40px; }
+  .paper {
+    background: var(--paper); color: var(--paper-ink);
+    border-radius: 14px; box-shadow: var(--shadow);
+    padding: 18px 14px 8px;
+  }
+  #score { color: var(--paper-ink); }
+  #score svg { display: block; }
+  #score .abcjs-note, #score .abcjs-rest { cursor: pointer; }
+  #score .now, #score .now path { fill: var(--accent); color: var(--accent); }
+  #score .overlay { pointer-events: none; }
+  #score .ball { fill: var(--accent); }
+  #score .band { fill: var(--accent-soft); }
+
+  .hint { color: var(--muted); font-size: 13px; margin: 14px 2px 0; }
+  .hint kbd {
+    font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 1px 6px; border-radius: 6px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .err {
+    display: none; margin: 16px 0; padding: 12px 14px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--ink);
+  }
+
+  #playScore { position: absolute; left: -20000px; top: 0; width: 1000px; height: 0; overflow: hidden; visibility: hidden; }
+
+  .more-toggle { display: none; }
+  @media (max-width: 640px) {
+    header.top { padding-top: 18px; }
+    .bar-row { gap: 10px; }
+    .counter { min-width: 0; flex: 1; padding: 6px 10px; gap: 8px; }
+    .counter .where { min-width: 0; }
+    .counter .where b { font-size: 16px; white-space: nowrap; }
+    .beats i { width: 11px; height: 11px; }
+    .beats i.down { width: 14px; height: 14px; }
+    .beats i.half { width: 12.5px; height: 12.5px; }
+    .counter .where span { overflow: hidden; text-overflow: ellipsis; max-width: 112px; }
+    .beats { gap: 6px; }
+    .more-toggle { display: inline-flex; order: 1; }
+    .tempo { order: 2; }
+    .transport:not(.open) .more { display: none; }
+    .transport.open .more-toggle { background: var(--surface-2); border-color: var(--accent); }
+    .tempo { width: 100%; }
+    .tempo input { flex: 1; width: auto; }
+    .paper { padding: 10px 4px 4px; border-radius: 10px; }
+  }
+</style>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>Jingle Bells</h1>
+      <p class="sub">James Lord Pierpont · arr. Peter Edvinsson · easy guitar tab · G major · 21 bars, verse and chorus each repeated</p>
+    </header>
+  </div>
+
+  <div class="transport">
+    <div class="wrap">
+      <div class="bar-row">
+        <button class="btn play" id="play" aria-label="Play" title="Play / pause (Space)">
+          <svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        </button>
+        <button class="btn" id="restart" aria-label="Back to start" title="Back to start (R)">
+          <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM19 6.2v11.6a1 1 0 0 1-1.53.85L9.6 13.7a1 1 0 0 1 0-1.7l7.87-4.95A1 1 0 0 1 19 6.2z"/></svg>
+        </button>
+
+        <div class="counter" aria-live="off">
+          <div class="where"><b id="barLabel">Bar 1</b><span id="sectionLabel">Verse · 1st time</span></div>
+          <div class="beats" id="beats"></div>
+        </div>
+
+        <label class="tempo more">Tempo
+          <input type="range" id="tempo" min="60" max="220" step="4" value="120" aria-label="Tempo in quarter-note beats per minute">
+          <output id="tempoOut">120</output>bpm
+        </label>
+
+        <button class="btn more-toggle" id="moreBtn" aria-label="Show options" aria-expanded="false" title="Options">
+          <svg viewBox="0 0 24 24"><path d="M4 7h10.2a2.5 2.5 0 0 1 4.6 0H20v2h-1.2a2.5 2.5 0 0 1-4.6 0H4zm0 8h1.2a2.5 2.5 0 0 1 4.6 0H20v2H9.8a2.5 2.5 0 0 1-4.6 0H4z"/></svg>
+        </button>
+      </div>
+
+      <div class="bar-row more" style="margin-top:10px">
+        <div class="opts">
+          <label class="chip"><input type="checkbox" id="optCount" checked>Count-in</label>
+          <label class="chip"><input type="checkbox" id="optMetro">Metronome</label>
+          <label class="chip"><input type="checkbox" id="optChords" checked>Chords</label>
+          <label class="chip"><input type="checkbox" id="optTab" checked>Tab</label>
+          <label class="chip"><input type="checkbox" id="optFollow" checked>Follow</label>
+          <label class="chip"><input type="checkbox" id="optLoop">Loop</label>
+          <select id="inst" aria-label="Melody instrument">
+            <option value="24">Nylon guitar</option>
+            <option value="25">Steel guitar</option>
+            <option value="0">Piano</option>
+            <option value="73">Flute</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="progress" id="progress" role="slider" aria-label="Position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"><div class="fill" id="progressFill"></div></div>
+      <div class="status" id="status" role="status"></div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <div class="err" id="err"></div>
+    <div class="paper"><div id="score"></div></div>
+    <p class="hint">
+      The ball lands on each note the moment it should sound. Click any note or tab number to jump there ·
+      <kbd>Space</kbd> play/pause · <kbd>←</kbd> <kbd>→</kbd> previous/next bar · <kbd>R</kbd> restart.
+      Bar numbers, line breaks and tab frets match the printed sheet.
+    </p>
+    <p class="hint">
+      Playback follows the repeats: the verse (bars 1–11) and the chorus (bars 12–21) are each played twice. The first
+      time takes the 1st ending (bars 6–8, then 18–19); the second time skips to the 2nd ending (bars 9–11, then 20–21).
+    </p>
+    <p class="hint">
+      The sheet is in cut time (¢), two half-note beats to the bar; the counter and metronome tick quarter notes, so
+      120 bpm here is 60 half notes a minute. The melody sounds where a guitar plays it, an octave below the written notes.
+    </p>
+  </main>
+
+  <div id="playScore" aria-hidden="true"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     Melody, transcribed bar by bar from the sheet (L = 1/4 note, key G, cut time).
+     Chord symbols drive the optional accompaniment. "open" is printed at the
+     start of a bar (repeat sign or ending bracket), "bar" is its closing line.
+     ===================================================================== */
+  var BARS = [
+    /* 1 */ { m: `"G"D B A G` },
+    /* 2 */ { m: `D3 D/D/` },
+    /* 3 */ { m: `D B A G` },
+    /* 4 */ { m: `"C"E4` },
+    /* 5 */ { m: `E c B A` },
+    /* 6 */ { m: `"D7"F4`, open: '[1' },
+    /* 7 */ { m: `d d c A` },
+    /* 8 */ { m: `"G"B4`, bar: ':|' },
+    /* 9 */ { m: `"D7"d d d d`, open: '[2' },
+    /*10 */ { m: `e d c A` },
+    /*11 */ { m: `"G"G2 "D7"d2`, bar: '||' },
+    /*12 */ { m: `"G"B B B2`, open: '|:' },
+    /*13 */ { m: `B B B2` },
+    /*14 */ { m: `B d G>A` },
+    /*15 */ { m: `B4` },
+    /*16 */ { m: `"C"c c c c` },
+    /*17 */ { m: `"G"c B B B/B/` },
+    /*18 */ { m: `"A7"B A A B`, open: '[1' },
+    /*19 */ { m: `"D7"A2 d2`, bar: ':|' },
+    /*20 */ { m: `"D7"d d c A`, open: '[2' },
+    /*21 */ { m: `"G"G4`, bar: '|]' }
+  ];
+  var NBARS = BARS.length;
+  BARS.forEach(function (b) { b.text = b.m; b.bar = b.bar || '|'; b.open = b.open || ''; });
+
+  // Line breaks exactly as on the printed page; on narrow screens each line is split at a phrase.
+  var SHEET_LINES = [[1,5],[6,11],[12,16],[17,21]];
+  var COMPACT_LINES = [[1,3],[4,5],[6,8],[9,11],[12,14],[15,16],[17,19],[20,21]];
+
+  var DRUM = 'dddd 76 77 77 77 112 72 72 72';   // four quarter-note clicks per bar
+
+  // Play order: each half is played twice, taking the 1st ending, then the 2nd.
+  function playOrder() {
+    var out = [];
+    function add(a, z, label) { for (var b = a; b <= z; b++) out.push({ bar: b, label: label, beats: 4 }); }
+    add(1, 8, 'Verse · 1st time');
+    add(1, 5, 'Verse · 2nd time');
+    add(9, 11, 'Verse · 2nd time');
+    add(12, 19, 'Chorus · 1st time');
+    add(12, 17, 'Chorus · 2nd time');
+    add(20, 21, 'Chorus · 2nd time');
+    return out;
+  }
+  var ORDER = playOrder();
+
+  /* ===================================================================== */
+  var $ = function (id) { return document.getElementById(id); };
+  var scoreEl = $('score');
+  var errEl = $('err');
+
+  function showError(msg) { errEl.textContent = msg; errEl.style.display = 'block'; }
+
+  if (!window.ABCJS) {
+    showError('Could not load the music engine (abcjs). Check your internet connection and reload the page.');
+    return;
+  }
+
+  var S = loadSettings();
+  function loadSettings() {
+    var d = { bpm: 120, countIn: true, metronome: false, chords: true, tab: true, follow: true, loop: false, program: 24 };
+    try {
+      var s = JSON.parse(localStorage.getItem('jb-settings') || '{}');
+      Object.keys(d).forEach(function (k) { if (typeof s[k] === typeof d[k]) d[k] = s[k]; });
+    } catch (e) { /* storage unavailable */ }
+    d.loop = false;
+    return d;
+  }
+  function saveSettings() { try { localStorage.setItem('jb-settings', JSON.stringify(S)); } catch (e) { /* ignore */ } }
+
+  // visualObj: the score as printed (shown). playObj: the same bars unrolled in play order
+  // (rendered off-screen), which the synth plays; its notes are mapped back onto the printed ones.
+  var visualObj = null, playObj = null, svg = null, overlay = null, ball = null, band = null;
+  var events = [], notes = [], lineRight = {}, total = 1;
+  var layoutMode = null;
+  var curIdx = -2, curLine = -1, lastHighlighted = [];
+  var latencyMs = 0;
+  var sc = new ABCJS.synth.SynthController();
+  sc.cursorControl = {
+    extraMeasuresAtBeginning: S.countIn ? 1 : 0,
+    beatSubdivisions: 4,
+    onReady: function () { if (sc.timer) buildTimeline(sc.timer.noteTimings); },
+    onFinished: function () { clearHighlight(); curIdx = -2; }
+  };
+
+  // S.bpm counts quarter notes; abcjs counts the cut-time beat, the half note.
+  function msPerBeat() { return 60000 / S.bpm; }
+  function halfBpm() { return S.bpm / 2; }
+  function countInMs() { return S.countIn ? 4 * msPerBeat() : 0; }
+
+  /* ---------- ABC: printed layout and unrolled play order ---------- */
+  // Guitar music is written an octave above where it sounds; the hidden play copy uses
+  // the treble-8 clef so the melody sounds at guitar pitch.
+  function header(forPlay) {
+    return 'X:1\n%%printtempo false\n%%barnumbers 0\n%%annotationfont Helvetica 10 italic\nM:C|\nL:1/4\nQ:1/4=' + S.bpm +
+      '\nK:G' + (forPlay ? ' clef=treble-8' : '') + '\n';
+  }
+
+  // abcjs sometimes starts a note's character range on the space before it, so
+  // positions are compared from the first non-space character.
+  var visText = '', playText = '';
+  function skipWs(t, c) { while (c < t.length && /\s/.test(t.charAt(c))) c++; return c; }
+
+  var visStart = {};   // bar number -> offset of its text in the printed ABC
+  function buildVisualAbc() {
+    var lines = layoutMode === 'compact' ? COMPACT_LINES : SHEET_LINES;
+    var abc = header(false);
+    lines.forEach(function (r) {
+      // abcjs restarts the count at a 2nd ending; the sheet numbers bars straight through
+      if (r[0] > 1) abc += '%%setbarnb ' + r[0] + '\n';
+      for (var n = r[0]; n <= r[1]; n++) {
+        var b = BARS[n - 1];
+        if (b.open) abc += b.open + ' ';
+        visStart[n] = abc.length;
+        abc += b.text + ' ' + b.bar;
+        // mid-line, an ending bracket goes right after the bar line before it ("|[1", ":|[2")
+        if (n === r[1]) abc += '\n';
+        else if (BARS[n].open.charAt(0) !== '[') abc += ' ';
+      }
+    });
+    visText = abc;
+    return abc;
+  }
+
+  var playBars = [];   // [{start, len, bar, idx}] in the unrolled ABC
+  function buildPlayAbc() {
+    var abc = header(true);
+    playBars = [];
+    ORDER.forEach(function (o, i) {
+      var b = BARS[o.bar - 1];
+      playBars.push({ start: abc.length, len: b.text.length, bar: o.bar, idx: i });
+      var last = i === ORDER.length - 1;
+      abc += b.text + ' ' + (last ? '|]' : '|') + (last || i % 4 === 3 ? '\n' : ' ');
+    });
+    playText = abc;
+    return abc;
+  }
+
+  // A character position in the unrolled ABC -> the printed note.
+  function mapPlayChar(pc) {
+    pc = skipWs(playText, pc);
+    var lo = 0, hi = playBars.length - 1, ans = -1;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (playBars[mid].start <= pc) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+    if (ans < 0) return null;
+    var pb = playBars[ans], off = pc - pb.start;
+    if (off >= pb.len) return null;
+    return { vis: visStart[pb.bar] + off, idx: pb.idx };
+  }
+
+  function wantedLayout() { return scoreEl.clientWidth < 620 ? 'compact' : 'sheet'; }
+
+  function render() {
+    layoutMode = wantedLayout();
+    var compact = layoutMode === 'compact';
+    var opts = {
+      add_classes: true,
+      responsive: 'resize',
+      staffwidth: compact ? 440 : 940,
+      paddingtop: 4, paddingbottom: 14, paddingleft: 6, paddingright: 6,
+      selectionColor: '#1b1a18',
+      clickListener: onScoreClick
+    };
+    if (S.tab) opts.tablature = [{ instrument: 'guitar', label: ' ' }];
+    visualObj = ABCJS.renderAbc('score', buildVisualAbc(), opts)[0];
+    svg = scoreEl.querySelector('svg');
+    visualObj.setUpAudio();   // gives each printed note its pitch, for the click preview
+    buildGeometry();
+    playObj = ABCJS.renderAbc('playScore', buildPlayAbc(), { staffwidth: 940 })[0];
+    buildOverlay();
+    buildTimeline(playObj.setTiming(halfBpm(), S.countIn ? 1 : 0));
+    curIdx = -2; curLine = -1; lastHighlighted = [];
+  }
+
+  function buildOverlay() {
+    var NS = 'http://www.w3.org/2000/svg';
+    overlay = document.createElementNS(NS, 'g');
+    overlay.setAttribute('class', 'overlay');
+    band = document.createElementNS(NS, 'rect');
+    band.setAttribute('class', 'band');
+    band.setAttribute('rx', '5');
+    band.setAttribute('width', '14');
+    band.style.display = 'none';
+    ball = document.createElementNS(NS, 'ellipse');
+    ball.setAttribute('class', 'ball');
+    overlay.appendChild(band);
+    overlay.appendChild(ball);
+    svg.insertBefore(band, svg.firstChild);   // band behind the notes
+    svg.appendChild(overlay);                  // ball on top
+  }
+
+  function headBox(es) {
+    if (!es) return null;
+    for (var i = 0; i < es.length; i++) {
+      var el = es[i];
+      if (!el || !el.getBBox) continue;
+      var h = (el.classList && el.classList.contains('abcjs-notehead')) ? el : (el.querySelector && el.querySelector('.abcjs-notehead'));
+      if (h) return h.getBBox();
+    }
+    return null;
+  }
+
+  // Where each printed note/rest sits: its SVG elements, ball landing point, and staff line.
+  var GEO = {};
+  function buildGeometry() {
+    GEO = {};
+    var lineOf = {}, lineBox = {};
+    visualObj.setTiming(halfBpm(), 0).forEach(function (e) {
+      if (e.type !== 'event') return;
+      var cs = e.startCharArray && e.startCharArray.length ? e.startCharArray : [e.startChar];
+      cs.forEach(function (c) { c = skipWs(visText, c); if (lineOf[c] == null) lineOf[c] = e.line; });
+      if (e.top != null && !lineBox[e.line]) lineBox[e.line] = { top: e.top, height: e.height };
+    });
+    (visualObj.lines || []).forEach(function (line) {
+      (line.staff || []).forEach(function (st) {
+        (st.voices || []).forEach(function (v) {
+          v.forEach(function (el) {
+            if (el.el_type !== 'note' || !el.abselem) return;
+            var els = (el.abselem.elemset || []).filter(function (x) { return x && x.getBBox; });
+            var key = skipWs(visText, el.startChar), ln = lineOf[key];
+            if (!els.length || ln == null || !lineBox[ln]) return;
+            var g = GEO[key];
+            if (g) { g.els = g.els.concat(els); return; }   // the tab number under a note
+            var hb = headBox(els), x, y;
+            if (hb) { x = hb.x + hb.width / 2; y = hb.y; }
+            else { var bb = els[0].getBBox(); x = bb.x + bb.width / 2; y = bb.y; }
+            GEO[key] = {
+              char: key, line: ln, top: lineBox[ln].top, height: lineBox[ln].height,
+              x: x, y: y, els: els, isNote: !el.rest, abcelem: el
+            };
+          });
+        });
+      });
+    });
+  }
+
+  function buildTimeline(noteTimings) {
+    events = [];
+    noteTimings.forEach(function (e) {
+      if (e.type !== 'event' || e.left === null) return;
+      var cs = e.startCharArray && e.startCharArray.length ? e.startCharArray : [e.startChar];
+      var kept = [];
+      cs.forEach(function (pc) {
+        var m = mapPlayChar(pc);
+        if (!m) return;
+        var g = GEO[m.vis];
+        if (!g || kept.indexOf(g) >= 0) return;
+        kept.push(g);
+      });
+      if (!kept.length) return;
+      var heads = kept.filter(function (g) { return g.isNote; });
+      var main = heads[0] || kept[0];
+      var els = [];
+      kept.forEach(function (g) { els = els.concat(g.els); });
+      events.push({
+        ms: e.milliseconds, line: main.line, top: main.top, height: main.height,
+        x: main.x, y: main.y, els: els, isNote: heads.length > 0,
+        chars: kept.map(function (g) { return g.char; })
+      });
+    });
+    notes = events.filter(function (e) { return e.isNote; });
+    lineRight = {};
+    events.forEach(function (e) { lineRight[e.line] = Math.max(lineRight[e.line] || 0, e.x + 24); });
+    var last = noteTimings[noteTimings.length - 1];
+    total = last ? last.milliseconds : 1;
+  }
+
+  /* ---------- time ---------- */
+  // Position of the sound actually coming out of the speakers, from the audio clock.
+  function audioMs() {
+    var mb = sc.midiBuffer;
+    if (!mb || !mb.isRunning || mb.startTimeSec == null) return null;
+    var ctx = ABCJS.synth.activeAudioContext();
+    if (!ctx) return null;
+    var pos = null;
+    if (ctx.getOutputTimestamp) {
+      var ts = ctx.getOutputTimestamp();
+      if (ts && ts.contextTime > 0 && ts.performanceTime > 0) pos = ts.contextTime + (performance.now() - ts.performanceTime) / 1000;
+    }
+    if (pos == null) pos = ctx.currentTime - latencyMs / 1000;
+    return (pos - mb.startTimeSec) * 1000;
+  }
+
+  function nowMs() {
+    var t = sc.timer;
+    if (!t) return 0;
+    if (t.isRunning) { var a = audioMs(); if (a != null) return a; }
+    if (t.isRunning && t.startTime != null) return performance.now() - t.startTime - latencyMs;
+    var pct = t.pausedPercent != null ? t.pausedPercent : (sc.percent || 0);
+    return pct * t.lastMoment;
+  }
+  function isPlaying() { return !!(sc.isStarted && sc.timer && sc.timer.isRunning); }
+
+  function lastLE(arr, t) {
+    var lo = 0, hi = arr.length - 1, ans = -1;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (arr[mid].ms <= t + 0.5) { ans = mid; lo = mid + 1; } else hi = mid - 1; }
+    return ans;
+  }
+
+  function position(t) {
+    var mpb = msPerBeat(), beatF = t / mpb;
+    if (S.countIn) {
+      if (beatF < 4) return { countIn: true, beats: 4, beat: Math.floor(beatF) };
+      beatF -= 4;
+    }
+    for (var i = 0; i < ORDER.length; i++) {
+      var m = ORDER[i];
+      if (beatF < m.beats) return { m: m, idx: i, beats: m.beats, beat: Math.floor(beatF) };
+      beatF -= m.beats;
+    }
+    var lm = ORDER[ORDER.length - 1];
+    return { m: lm, idx: ORDER.length - 1, beats: lm.beats, beat: lm.beats - 1 };
+  }
+  function barStartMs(orderIdx) {
+    var beats = 0;
+    for (var i = 0; i < orderIdx; i++) beats += ORDER[i].beats;
+    return countInMs() + beats * msPerBeat();
+  }
+
+  /* ---------- drawing ---------- */
+  function clearHighlight() {
+    lastHighlighted.forEach(function (el) { el.classList.remove('now'); });
+    lastHighlighted = [];
+    if (band) band.style.display = 'none';
+  }
+  function highlight(ev) {
+    clearHighlight();
+    if (!ev) return;
+    ev.els.forEach(function (el) { el.classList.add('now'); });
+    lastHighlighted = ev.els.slice();
+    band.style.display = '';
+    band.setAttribute('x', ev.x - 7);
+    band.setAttribute('y', ev.top - 2);
+    band.setAttribute('height', ev.height + 4);
+  }
+
+  var R = 4.6;
+  function drawBall(t, running) {
+    if (!notes.length) return;
+    var mpb = msPerBeat();
+    var x, y, squash = 1, opacity = 1;
+    var ni = lastLE(notes, t);
+    if (ni < 0) {
+      var f = notes[0];
+      x = f.x; y = f.y;
+      if (running) { var p0 = (t % mpb) / mpb; y -= 14 * 4 * p0 * (1 - p0); if (p0 < 0.12) squash = 0.72 + 0.28 * (p0 / 0.12); }
+    } else {
+      var a = notes[ni], b = notes[ni + 1];
+      x = a.x; y = a.y;
+      if (b) {
+        var gap = b.ms - a.ms, hop = Math.min(gap, mpb * 1.5), hs = b.ms - hop;
+        if (t >= hs) {
+          var p = Math.min(1, (t - hs) / hop);
+          var H = Math.max(7, Math.min(20, 6 + 9 * hop / mpb));
+          var forward = b.x >= a.x - 1;
+          if (a.line === b.line && forward) {
+            x = a.x + (b.x - a.x) * p;
+            y = a.y + (b.y - a.y) * p - H * 4 * p * (1 - p);
+          } else if (p < 0.5) {
+            // jumping to another line, or back for a repeat: fade out here, fade in there
+            var q = p * 2;
+            x = a.x + ((lineRight[a.line] || a.x + 30) - a.x) * q;
+            y = a.y - H * Math.sin(q * Math.PI / 2);
+            opacity = 1 - q;
+          } else {
+            var q2 = (p - 0.5) * 2;
+            x = b.x - 34 * (1 - q2);
+            y = b.y - H * Math.cos(q2 * Math.PI / 2);
+            opacity = q2;
+          }
+        }
+      }
+      var since = t - a.ms;
+      if (running && since >= 0 && since < 110) squash = 0.7 + 0.3 * (since / 110);
+    }
+    var ry = R * squash, rx = R * (1 + (1 - squash) * 0.7);
+    ball.setAttribute('cx', x.toFixed(2));
+    ball.setAttribute('cy', (y - 1.2 - ry).toFixed(2));
+    ball.setAttribute('rx', rx.toFixed(2));
+    ball.setAttribute('ry', ry.toFixed(2));
+    ball.style.opacity = opacity.toFixed(2);
+  }
+
+  var beatsEl = $('beats'), barLabel = $('barLabel'), sectionLabel = $('sectionLabel');
+  var shownBeats = -1, shownKey = '', shownBeat = -2;
+  function drawCounter(t, active) {
+    var pos = position(t);
+    var key = pos.countIn ? 'c' : pos.m.bar + '|' + pos.idx;
+    if (pos.beats !== shownBeats || (pos.countIn ? 'c' : 'm') !== shownKey.charAt(0)) {
+      beatsEl.innerHTML = '';
+      for (var i = 0; i < pos.beats; i++) {
+        var d = document.createElement('i');
+        if (i === 0) d.className = 'down';
+        else if (i === 2) d.className = 'half';   // the second cut-time beat
+        if (pos.countIn) d.classList.add('count');
+        beatsEl.appendChild(d);
+      }
+      shownBeats = pos.beats; shownBeat = -2;
+    }
+    if (key !== shownKey) {
+      shownKey = key;
+      if (pos.countIn) { barLabel.textContent = 'Count-in'; sectionLabel.textContent = 'get ready…'; }
+      else { barLabel.textContent = 'Bar ' + pos.m.bar; sectionLabel.textContent = pos.m.label; }
+    }
+    var b = active ? pos.beat : -1;
+    if (b !== shownBeat) {
+      var dots = beatsEl.children;
+      for (var j = 0; j < dots.length; j++) dots[j].classList.toggle('on', j === b);
+      shownBeat = b;
+    }
+  }
+
+  var fillEl = $('progressFill'), progEl = $('progress');
+  function drawProgress(t) {
+    var pct = Math.max(0, Math.min(1, t / (total || 1)));
+    fillEl.style.width = (pct * 100).toFixed(2) + '%';
+    progEl.setAttribute('aria-valuenow', Math.round(pct * 100));
+  }
+
+  var transportEl = document.querySelector('.transport');
+  function follow(ev) {
+    if (!S.follow || !svg || !ev) return;
+    var rect = svg.getBoundingClientRect();
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var scale = vb && vb.width ? rect.width / vb.width : 1;
+    var top = rect.top + (ev.top - 30) * scale;
+    var bottom = rect.top + (ev.top + ev.height + 20) * scale;
+    var headerH = transportEl.getBoundingClientRect().bottom;
+    if (top < headerH + 8 || bottom > window.innerHeight - 24) {
+      var target = window.scrollY + top - headerH - Math.max(16, (window.innerHeight - headerH) * 0.18);
+      window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    }
+  }
+
+  var playIcon = $('playIcon'), playBtn = $('play'), shownPlaying = null;
+  var PLAY_D = 'M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z';
+  var PAUSE_D = 'M7 5h3.5a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5v-13A.5.5 0 0 1 7 5zm6.5 0H17a.5.5 0 0 1 .5.5v13a.5.5 0 0 1-.5.5h-3.5a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 .5-.5z';
+
+  function frame() {
+    requestAnimationFrame(frame);
+    if (!svg) return;
+    var playing = isPlaying();
+    if (playing !== shownPlaying) {
+      shownPlaying = playing;
+      playIcon.firstElementChild.setAttribute('d', playing ? PAUSE_D : PLAY_D);
+      playBtn.setAttribute('aria-label', playing ? 'Pause' : 'Play');
+    }
+    var t = Math.max(0, nowMs());
+    var started = playing || t > 1;
+    var idx = started ? lastLE(events, t) : -1;
+    if (idx !== curIdx) {
+      curIdx = idx;
+      var ev = idx >= 0 ? events[idx] : null;
+      highlight(ev);
+      if (ev && ev.line !== curLine) { curLine = ev.line; if (playing) follow(ev); }
+    }
+    drawBall(t, playing);
+    drawCounter(t, started);
+    drawProgress(t);
+  }
+
+  /* ---------- transport actions ---------- */
+  var statusEl = $('status');
+  function setStatus(s) { statusEl.textContent = s || ''; }
+
+  var queue = Promise.resolve();
+  function serial(fn) { queue = queue.then(fn).catch(function (e) { console.error(e); setStatus('Audio error: ' + (e && e.message ? e.message : e)); }); return queue; }
+
+  function updateLatency() {
+    try {
+      var ctx = ABCJS.synth.activeAudioContext();
+      latencyMs = ctx ? ((ctx.outputLatency || ctx.baseLatency || 0) * 1000) : 0;
+      if (!isFinite(latencyMs) || latencyMs < 0 || latencyMs > 400) latencyMs = 0;
+    } catch (e) { latencyMs = 0; }
+  }
+
+  function ensureLoaded() {
+    if (sc.isLoaded) return Promise.resolve();
+    setStatus('Loading sounds…');
+    return sc.runWhenReady(function () { return Promise.resolve(); }).then(function () { setStatus(''); });
+  }
+
+  function togglePlay() {
+    return serial(function () {
+      if (!ABCJS.synth.supportsAudio()) { setStatus('This browser cannot play audio.'); return; }
+      var needsLoad = !sc.isLoaded;
+      if (needsLoad) setStatus('Loading sounds…');
+      if (!sc.isStarted && sc.timer && sc.timer.pausedPercent != null) sc.percent = sc.timer.pausedPercent;
+      return sc.play().then(function () {
+        setStatus('');
+        if (sc.isStarted) { updateLatency(); if (S.follow && curIdx >= 0) follow(events[curIdx]); }
+      });
+    });
+  }
+
+  function seekMs(ms) {
+    if (!sc.timer) return;
+    ms = Math.max(0, Math.min(ms, sc.timer.lastMoment - 1));
+    sc.seek(ms / 1000, 'seconds');
+    // abcjs restarts the sound at the new offset but keeps the old start time,
+    // which would make a later pause/resume jump. Re-anchor it.
+    var mb = sc.midiBuffer;
+    if (mb && mb.isRunning) mb.startTimeSec = ABCJS.synth.activeAudioContext().currentTime - ms / 1000;
+    sc.percent = ms / sc.timer.lastMoment;
+    curIdx = -2;
+  }
+
+  function seekTo(ms) {
+    return serial(function () {
+      return ensureLoaded().then(function () { seekMs(ms); var ev = events[Math.max(0, lastLE(events, ms))]; if (ev) follow(ev); });
+    });
+  }
+
+  function restart() { seekTo(0); }
+
+  function jumpBar(dir) {
+    var t = Math.max(0, nowMs());
+    var pos = position(t);
+    if (pos.countIn) { seekTo(dir > 0 ? countInMs() : 0); return; }
+    var start = barStartMs(pos.idx);
+    var target;
+    if (dir < 0) target = (t - start > msPerBeat() * 0.75 || pos.idx === 0) ? start : barStartMs(pos.idx - 1);
+    else target = pos.idx + 1 < ORDER.length ? barStartMs(pos.idx + 1) : start;
+    seekTo(target);
+  }
+
+  // Clicking a printed note (or its tab number) jumps to its nearest occurrence in the play order.
+  function onScoreClick(abcelem) {
+    if (!abcelem || (abcelem.el_type !== 'note' && abcelem.el_type !== 'tabNumber')) return;
+    var c = skipWs(visText, abcelem.startChar);
+    if (abcelem.el_type === 'tabNumber') { if (!GEO[c]) return; abcelem = GEO[c].abcelem; }   // the note above it
+    var cands = events.filter(function (e) { return e.chars.indexOf(c) >= 0; });
+    if (!cands.length) return;
+    var t = nowMs();
+    cands.sort(function (a, b) { return Math.abs(a.ms - t) - Math.abs(b.ms - t); });
+    var target = cands[0].ms;
+    serial(function () {
+      return ensureLoaded().then(function () {
+        seekMs(target);
+        if (!isPlaying() && abcelem.midiPitches && abcelem.midiPitches.length) {
+          // an octave down, at guitar pitch, on the chosen instrument
+          var pitches = abcelem.midiPitches.map(function (p) { return Object.assign({}, p, { pitch: p.pitch - 12, instrument: S.program }); });
+          ABCJS.synth.playEvent(pitches, abcelem.midiGraceNotePitches, visualObj.millisecondsPerMeasure()).catch(function () {});
+        }
+      });
+    });
+  }
+
+  function audioParams() {
+    var p = {
+      program: S.program,
+      chordsOff: !S.chords,
+      chordprog: 24, chordvol: 46,
+      bassprog: 32, bassvol: 58
+    };
+    if (S.metronome || S.countIn) {
+      p.drum = DRUM;
+      p.drumBars = 1;
+      p.drumIntro = S.countIn ? 1 : 0;
+      if (!S.metronome) p.drumOff = true;
+    }
+    return p;
+  }
+
+  // Apply a settings change, keeping the musical position and play state.
+  function applySettings(change, rerender) {
+    return serial(function () {
+      var wasPlaying = isPlaying();
+      var oldMpb = msPerBeat(), oldCount = countInMs();
+      var musicBeats = Math.max(0, (nowMs() - oldCount) / oldMpb);
+      var hadPosition = sc.timer && nowMs() > 1;
+      var chain = wasPlaying ? sc.play() : Promise.resolve();   // play() toggles -> pause
+      return chain.then(function () {
+        change();
+        saveSettings();
+        sc.cursorControl.extraMeasuresAtBeginning = S.countIn ? 1 : 0;
+        if (rerender || wantedLayout() !== layoutMode) render();
+        else buildTimeline(playObj.setTiming(halfBpm(), S.countIn ? 1 : 0));
+        if (!sc.isLoaded) { sc.setTune(playObj, false, audioParams()); return; }
+        setStatus('Loading…');
+        return sc.setTune(playObj, true, audioParams()).then(function () {
+          setStatus('');
+          if (hadPosition && musicBeats > 0) seekMs(countInMs() + musicBeats * msPerBeat());
+          if (wasPlaying) { if (sc.timer && sc.timer.pausedPercent != null) sc.percent = sc.timer.pausedPercent; return sc.play(); }
+        });
+      });
+    });
+  }
+
+  /* ---------- wire up UI ---------- */
+  var tempo = $('tempo'), tempoOut = $('tempoOut');
+  tempo.value = S.bpm; tempoOut.textContent = S.bpm;
+  tempo.addEventListener('input', function () { tempoOut.textContent = tempo.value; });
+  tempo.addEventListener('change', function () {
+    var v = parseInt(tempo.value, 10);
+    if (v === S.bpm) return;
+    applySettings(function () { S.bpm = v; }, true);
+  });
+
+  function bindCheck(id, key, rerender, after) {
+    var el = $(id);
+    el.checked = !!S[key];
+    el.addEventListener('change', function () {
+      if (after) { S[key] = el.checked; after(); saveSettings(); return; }
+      applySettings(function () { S[key] = el.checked; }, rerender);
+    });
+  }
+  bindCheck('optCount', 'countIn', false);
+  bindCheck('optMetro', 'metronome', false);
+  bindCheck('optChords', 'chords', false);
+  bindCheck('optTab', 'tab', true);
+  bindCheck('optFollow', 'follow', false, function () {});
+  bindCheck('optLoop', 'loop', false, function () { if (!!sc.isLooping !== S.loop) sc.toggleLoop(); });
+
+  var inst = $('inst');
+  inst.value = String(S.program);
+  inst.addEventListener('change', function () { var v = parseInt(inst.value, 10); applySettings(function () { S.program = v; }, false); });
+
+  playBtn.addEventListener('click', togglePlay);
+  $('restart').addEventListener('click', restart);
+  var moreBtn = $('moreBtn');
+  moreBtn.addEventListener('click', function () {
+    var open = transportEl.classList.toggle('open');
+    moreBtn.setAttribute('aria-expanded', String(open));
+    moreBtn.setAttribute('aria-label', open ? 'Hide options' : 'Show options');
+  });
+
+  function progressSeek(clientX) {
+    var r = progEl.getBoundingClientRect();
+    var pct = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+    seekTo(pct * total);
+  }
+  progEl.addEventListener('pointerdown', function (e) { progressSeek(e.clientX); });
+  progEl.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); jumpBar(e.key === 'ArrowLeft' ? -1 : 1); }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var tag = (e.target && e.target.tagName) || '';
+    if (tag === 'SELECT' || (tag === 'INPUT' && e.target.type === 'range')) return;
+    if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); jumpBar(-1); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); jumpBar(1); }
+    else if (e.key === 'r' || e.key === 'R' || e.key === 'Home') { e.preventDefault(); restart(); }
+  });
+
+  var resizeTimer = null;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (wantedLayout() !== layoutMode) applySettings(function () {}, true);
+    }, 250);
+  });
+
+  // Initial render; audio loads on first Play (browsers need a click first).
+  render();
+  sc.setTune(playObj, false, audioParams());
+  requestAnimationFrame(frame);
+
+  // Small hook for debugging in the console.
+  window.__jb = {
+    sc: sc, get events() { return events; }, get notes() { return notes; }, get GEO() { return GEO; },
+    get visualObj() { return visualObj; }, get playObj() { return playObj; },
+    get visStart() { return visStart; }, abc: buildVisualAbc, playAbc: buildPlayAbc, map: mapPlayChar
+  };
+})();
+</script>
+</body>
+</html>
